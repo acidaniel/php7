@@ -1,4 +1,4 @@
-FROM acidaniel/php:testing
+FROM acidaniel/php7:testing
 MAINTAINER Daniel Serna <acidaniel@gmail.com>
 
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
