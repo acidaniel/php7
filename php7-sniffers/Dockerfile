@@ -20,6 +20,9 @@ RUN apk add --no-cache \
   && ln -s /root/.composer/vendor/drupal/coder/coder_sniffer/Drupal /root/.composer/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Drupal \
   && ln -s /root/.composer/vendor/drupal/coder/coder_sniffer/DrupalPractice /root/.composer/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/DrupalPractice
 
+ENV HTTP_PROXY=http://proxy-us.intel.com:911
+ENV HTTPS_PROXY=http://proxy-us.intel.com:912
+
 VOLUME /work
 WORKDIR /work
 

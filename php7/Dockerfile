@@ -1,61 +1,61 @@
 FROM alpine:edge
-MAINTAINER Daniel Serna <acidaniel@gmail.com>
 
-# persistent / runtime deps
-ENV PHPIZE_DEPS \
-  autoconf \
-  file \
-  g++ \
-  gcc \
-  libc-dev \
-  make \
-  pkgconf \
-  re2c
+ARG BUILD_DATE
+ARG VCS_REF
 
-# add php7-xdebug if needed
+LABEL org.label-schema.build-date=$BUILD_DATE \
+  org.label-schema.vcs-ref=$VCS_REF \
+  org.label-schema.schema-version="1.0" \
+  org.label-schema.name="php7" \
+  org.label-schema.description="PHP Alpine for Drupal - composer & drush" \
+  org.label-schema.vcs-url="https://github.com/acidaniel/php7" \
+  maintainer="Daniel Serna <acidaniel@gmail.com>"
+
+ENV COMPOSER_HASH=669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410
 ENV PHPRUN_DEPS \
   curl \
   mariadb-client \
-  patch
+  patch \
+  sqlite
 
-RUN apk add --no-cache \
+RUN set -e \
+  && apk add --upgrade --no-cache \
   php7 \
+  php7-apcu \
   php7-bcmath \
   php7-ctype \
   php7-curl \
   php7-dom \
   php7-gd \
+  php7-gmp \
   php7-json \
   php7-mbstring \
   php7-mcrypt \
   php7-opcache \
   php7-openssl \
   php7-pcntl \
+  php7-pdo \
   php7-pdo_mysql \
   php7-pdo_sqlite \
   php7-phar \
   php7-session \
+  php7-xdebug \
   php7-xml \
+  php7-xmlreader \
   php7-zlib \
-  && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-  php7-apcu \
-  && ln -s /usr/bin/php7 /usr/bin/php \
+  $PHPRUN_DEPS \
+  && rm -fr /var/cache/apk/* \
   && php7 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-  && php7 -r "if (hash_file('SHA384', 'composer-setup.php') === 'e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
+  && php7 -r "if (hash_file('SHA384', 'composer-setup.php') === getenv('COMPOSER_HASH')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
   && php7 composer-setup.php \
   --install-dir=/usr/bin \
   --filename=composer \
   && php7 -r "unlink('composer-setup.php');" \
   && php7 -r "copy('http://files.drush.org/drush.phar', '/usr/bin/drush');" \
-  && chmod +x /usr/bin/drush \
-  && apk add --no-cache \
-  $PHPRUN_DEPS \
-  && rm -rf /var/cache/apk/*
+  && chmod +x /usr/bin/drush
 
 COPY php.ini /etc/php7/conf.d/xx-drupal.ini
 
 WORKDIR /srv
 
-EXPOSE 80
-
-CMD php -t /srv -S 0.0.0.0:80
+CMD ["php", "-t", "/srv", "-S", "0.0.0.0:80"]
